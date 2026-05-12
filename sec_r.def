@@ -1,0 +1,73 @@
+Bootstrap: docker
+From: rocker/geospatial:4.4.3
+
+%post
+    export DEBIAN_FRONTEND=noninteractive
+    apt-get update -qq \
+        && apt-get install -y --no-install-recommends \
+            libxml2-dev libssl-dev libcurl4-openssl-dev \
+        && rm -rf /var/lib/apt/lists/*
+
+    Rscript -e "options(Ncpus = parallel::detectCores()); install.packages( \
+        c( \
+            'tidyverse', \
+            'dbplyr', \
+            'foreign', \
+            'networkD3', \
+            'leaflet', \
+            'comorbidity', \
+            'lubridate', \
+            'broom', \
+            'bupaR', \
+            'htmlwidgets', \
+            'data.table', \
+            'lqmm', \
+            'plm', \
+            'patchwork', \
+            'visreg', \
+            'fixest', \
+            'janitor', \
+            'sandwich', \
+            'lmtest', \
+            'geofi', \
+            'sf', \
+            'sp', \
+            'ggmap', \
+            'tidygeocoder', \
+            'gmapsdistance', \
+            'osrm', \
+            'viridis', \
+            'RColorBrewer', \
+            'gt', \
+            'gtsummary', \
+            'modelsummary', \
+            'did', \
+            'abind', \
+            'future', \
+            'Formula', \
+            'lfe', \
+            'smd' \
+        ), \
+        repos = 'https://cloud.r-project.org', \
+        dependencies = TRUE \
+    )"
+
+%environment
+    export LANG=C.UTF-8
+    export LC_ALL=C.UTF-8
+    export RSTUDIO_DISABLE_CHECK_FOR_UPDATES=1
+
+%runscript
+    export USER="$(id -un)"
+    exec /usr/lib/rstudio-server/bin/rserver \
+        --www-address="${RSTUDIO_WWW_ADDRESS:-127.0.0.1}" \
+        --server-user="$(id -un)" \
+        --auth-none=0 \
+        --auth-pam-helper-path=/usr/lib/rstudio-server/bin/pam-helper \
+        --auth-timeout-minutes=0 \
+        --auth-stay-signed-in-days=30 \
+        "$@"
+
+%labels
+    Author ASC RSEs
+    Description R geospatial / econometrics for secdata workflows
